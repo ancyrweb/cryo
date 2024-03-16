@@ -19,6 +19,15 @@ class JsonObject(private val map: Map<String, Any>) : JsonElement() {
     throw RuntimeException("Invalid type")
   }
 
+  fun getDouble(key: String): Double {
+    val value = map[key]
+    if (value is Double) {
+      return value
+    }
+
+    throw RuntimeException("Invalid type")
+  }
+
   fun getBoolean(key: String): Boolean {
     val value = map[key]
     if (value is Boolean) {

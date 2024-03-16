@@ -36,6 +36,15 @@ class JsonParserTests {
     }
 
     @Test
+    fun `parse a decimal`() {
+      val obj = JsonParser("""{"key":12.345}""")
+        .parse()
+        .asObject()
+
+      assertEquals(12.345, obj.getDouble("key"))
+    }
+
+    @Test
     fun `parse a true boolean`() {
       val obj = JsonParser("""{"key":true}""")
         .parse()
@@ -156,6 +165,7 @@ class JsonParserTests {
                     "first" :   "Anthony", 
                     "second":   "Cyrille",
                     "age":      29,
+                    "note":     4.00,
                     "senior":   false,
                     "items":    [1, "two", true, null],
                     "lastJob":  null
@@ -171,6 +181,7 @@ class JsonParserTests {
       assertEquals("Anthony", name.getString("first"))
       assertEquals("Cyrille", name.getString("second"))
       assertEquals(29, name.getInt("age"))
+      assertEquals(4.00, name.getDouble("note"))
       assertEquals(false, name.getBoolean("senior"))
 
       val items = name.getArray("items");

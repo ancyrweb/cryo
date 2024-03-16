@@ -1,4 +1,6 @@
 package fr.cryo.json
 
-class JsonNull {
-}
+/**
+ * Represent a `null` JSON value
+ */
+class JsonNull

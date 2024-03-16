@@ -1,4 +1,3 @@
 package fr.cryo.json
 
-abstract class JsonElement {
-}
+abstract class JsonElement

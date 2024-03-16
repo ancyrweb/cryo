@@ -1,5 +1,9 @@
 package fr.cryo.json
 
+/**
+ * Parse a string JSON representation into a manipulable data-structure
+ * Supports any valid RFC 7159 content
+ */
 class JsonParser(data: String) {
   private val json = data.trim()
   private var current = 0
@@ -28,12 +32,11 @@ class JsonParser(data: String) {
   }
 
   private fun advance(): Char {
-    current++
-    return json[current - 1]
+    return json[current++]
   }
 
   private fun eof(): Boolean {
-    return current == json.length;
+    return current == json.length
   }
 
   fun parse(): JsonRoot {
@@ -112,7 +115,7 @@ class JsonParser(data: String) {
       '[' -> return parseArray()
       else -> {
         if (peek().isDigit()) {
-          return parseInt()
+          return parseNumber()
         } else if (peek().isLetter()) {
           return parseKeyword()
         }
@@ -138,15 +141,18 @@ class JsonParser(data: String) {
     throw RuntimeException("Invalid JSON")
   }
 
-  private fun parseInt(): Int {
-    var number = 0
-
-    while (peek().isDigit()) {
-      number *= 10
-      number += advance().digitToInt()
+  private fun parseNumber(): Number {
+    val stringBuilder = StringBuilder()
+    while (peek().isDigit() || peek() == '.') {
+      stringBuilder.append(advance())
     }
 
-    return number
+    val str = stringBuilder.toString()
+    if (str.contains('.')) {
+      return str.toDouble()
+    }
+
+    return str.toInt()
   }
 
   private fun parseString(): String {
