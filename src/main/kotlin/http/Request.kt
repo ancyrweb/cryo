@@ -53,7 +53,7 @@ class Request(input: InputStream) {
       val key = parts[0].trim()
       val value = parts[1].trim()
 
-      headers.add(key, value)
+      headers.set(key, value)
     }
   }
 
@@ -97,6 +97,10 @@ class Request(input: InputStream) {
     }
 
     return String(buffer, 0, idx)
+  }
+
+  fun toStringSummary(): String {
+    return "$method $uri"
   }
 
   class MalformattedRequestException(message: String) : Exception(message)

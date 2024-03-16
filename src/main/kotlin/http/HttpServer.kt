@@ -1,5 +1,6 @@
 package fr.cryo.http
 
+import fr.cryo.fr.cryo.http.routing.Router
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.ExecutorService
@@ -43,57 +44,31 @@ class HttpServer(
     threadPool.shutdown()
   }
 
-  class RequestTask(val socket: Socket, val router: Router) : Runnable {
+  class RequestTask(
+    private val socket: Socket,
+    private val router: Router
+  ) : Runnable {
     override fun run() {
       val inputStream = socket.getInputStream()
-      var response: Response?
-
+      val response = Response()
+      response.headers.set("X-WebServer", "Cryo")
 
       if (inputStream.available() == 0) {
-        response = Response(
-          body = "",
-          headers = Headers().apply {
-            add("Content-Type", "text/plain")
-            add("X-WebServer", "Cryo")
-          },
-          status = StatusCode.BAD_REQUEST
-        )
+        response.setStatusCode(StatusCode.BAD_REQUEST)
+        response.setPlainTextBody("Bad request")
       } else {
         val request = Request(socket.getInputStream())
         try {
-          response = router.invoke(request)
+          router.invoke(request, response)
         } catch (e: HttpException) {
           e.printStackTrace()
-          response = Response(
-            body = e.message,
-            headers = Headers().apply {
-              add("Content-Type", "text/plain")
-              add("X-WebServer", "Cryo")
-            },
-            status = e.code
-          )
+          response.setStatusCode(e.code)
+          response.setPlainTextBody(e.message ?: "An unknown error occured")
         } catch (e: Exception) {
           e.printStackTrace()
-          response = Response(
-            body = e.message,
-            headers = Headers().apply {
-              add("Content-Type", "text/plain")
-              add("X-WebServer", "Cryo")
-            },
-            status = StatusCode.INTERNAL_SERVER_ERROR
-          )
+          response.setStatusCode(StatusCode.INTERNAL_SERVER_ERROR)
+          response.setPlainTextBody(e.message ?: "An unknown error occured")
         }
-      }
-
-      if (response == null) {
-        response = Response(
-          body = "An unknown error occured",
-          headers = Headers().apply {
-            add("Content-Type", "text/plain")
-            add("X-WebServer", "Cryo")
-          },
-          status = StatusCode.INTERNAL_SERVER_ERROR
-        )
       }
 
       socket

@@ -4,11 +4,11 @@ class Headers(
   private val headers: MutableMap<String, String> = mutableMapOf()
 ) {
 
-  fun add(key: String, value: String) {
+  fun set(key: String, value: String) {
     headers[key] = value
   }
 
-  fun add(pair: Pair<String, String>) {
+  fun set(pair: Pair<String, String>) {
     headers[pair.first] = pair.second
   }
 
