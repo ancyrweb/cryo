@@ -6,7 +6,12 @@ class Response(
   val headers: Headers = Headers()
 ) {
   fun toByteArray(): ByteArray {
-    val statusLine = "HTTP/1.1 $status OK\r\n"
+    return toString().toByteArray()
+  }
+
+
+  override fun toString(): String {
+    val statusLine = "HTTP/1.1 $status\r\n"
     val headers = headers
       .toMap()
       .map { (key, value) -> "$key: $value" }
@@ -14,6 +19,6 @@ class Response(
 
     val body = if (body != null) "$body\r\n" else ""
 
-    return "$statusLine$headers\r\n$body".toByteArray()
+    return "$statusLine$headers\r\n$body"
   }
 }

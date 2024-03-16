@@ -3,11 +3,20 @@ package fr.cryo.http
 import java.io.InputStream
 
 class Request(input: InputStream) {
-  private var method: String = ""
-  private var uri: String = ""
-  private var version: String = ""
-  private val headers = Headers()
-  private var body: String = ""
+  lateinit var method: HttpMethod
+    private set
+
+  var uri: String = ""
+    private set
+
+  var version: String = ""
+    private set
+
+  var headers = Headers()
+    private set
+
+  var body: String = ""
+    private set
 
   init {
     readRequestLine(input)
@@ -23,7 +32,7 @@ class Request(input: InputStream) {
     val line = readTokens(input, '\n'.code, 8192)
     val parts = line.split(" ")
 
-    this.method = parts[0].trim()
+    this.method = HttpMethod.fromString(parts[0].trim())
     this.uri = parts[1].trim()
     this.version = parts[2].trim()
   }

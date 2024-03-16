@@ -5,12 +5,19 @@ import java.net.Socket
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class HttpServer(port: Int) {
+class HttpServer(
+  port: Int
+) {
   private var isRunning = true
   private val serverSocket = ServerSocket(port)
   private lateinit var threadPool: ExecutorService
+  private var router: Router? = null
 
   fun run() {
+    if (router == null) {
+      throw RuntimeException("No router defined")
+    }
+
     isRunning = true
     threadPool = Executors.newFixedThreadPool(
       Runtime.getRuntime().availableProcessors()
@@ -19,11 +26,15 @@ class HttpServer(port: Int) {
     while (isRunning) {
       try {
         val socket = serverSocket.accept()
-        threadPool.submit(RequestTask(socket))
+        threadPool.submit(RequestTask(socket, router!!))
       } catch (e: Exception) {
         e.printStackTrace()
       }
     }
+  }
+
+  fun use(router: Router) {
+    this.router = router
   }
 
   fun shutdown() {
@@ -32,10 +43,10 @@ class HttpServer(port: Int) {
     threadPool.shutdown()
   }
 
-  class RequestTask(val socket: Socket) : Runnable {
+  class RequestTask(val socket: Socket, val router: Router) : Runnable {
     override fun run() {
       val inputStream = socket.getInputStream()
-      val response: Response?
+      var response: Response?
 
 
       if (inputStream.available() == 0) {
@@ -49,14 +60,39 @@ class HttpServer(port: Int) {
         )
       } else {
         val request = Request(socket.getInputStream())
+        try {
+          response = router.invoke(request)
+        } catch (e: HttpException) {
+          e.printStackTrace()
+          response = Response(
+            body = e.message,
+            headers = Headers().apply {
+              add("Content-Type", "text/plain")
+              add("X-WebServer", "Cryo")
+            },
+            status = e.code
+          )
+        } catch (e: Exception) {
+          e.printStackTrace()
+          response = Response(
+            body = e.message,
+            headers = Headers().apply {
+              add("Content-Type", "text/plain")
+              add("X-WebServer", "Cryo")
+            },
+            status = StatusCode.INTERNAL_SERVER_ERROR
+          )
+        }
+      }
 
+      if (response == null) {
         response = Response(
-          body = "Hello, World!",
+          body = "An unknown error occured",
           headers = Headers().apply {
             add("Content-Type", "text/plain")
             add("X-WebServer", "Cryo")
           },
-          status = StatusCode.CREATED
+          status = StatusCode.INTERNAL_SERVER_ERROR
         )
       }
 
