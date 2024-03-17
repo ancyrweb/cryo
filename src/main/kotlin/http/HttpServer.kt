@@ -17,6 +17,9 @@ class HttpServer(
   private lateinit var threadPool: ExecutorService
   private var router: Router? = null
 
+  /**
+   * Runs the Cryo server
+   */
   fun run() {
     if (router == null) {
       throw RuntimeException("No router defined")
@@ -32,7 +35,7 @@ class HttpServer(
     while (isRunning) {
       try {
         val socket = serverSocket.accept()
-        threadPool.submit(RequestTask(socket, router!!, logger))
+        threadPool.submit(RequestTask(socket))
       } catch (e: Exception) {
         e.printStackTrace()
       }
@@ -43,19 +46,27 @@ class HttpServer(
     this.router = router
   }
 
+  /**
+   * Shuts the server down
+   * Respond to the last queued requests and then clean the thread pool.
+   */
   fun shutdown() {
+    logger.info("Shutting down")
+
     isRunning = false
     serverSocket.close()
     threadPool.shutdown()
   }
 
-  class RequestTask(
+  /**
+   * Reoresent a request flow
+   */
+  inner class RequestTask(
     private val socket: Socket,
-    private val router: Router,
-    private val logger: Logger
   ) : Runnable {
     override fun run() {
       val inputStream = socket.getInputStream()
+
       val response = Response()
       response.headers.set("X-WebServer", "Cryo")
 
@@ -67,9 +78,9 @@ class HttpServer(
 
       val request = Request(socket.getInputStream())
       logger.info(request.toStringSummary())
-      
+
       try {
-        router.invoke(request, response)
+        router!!.invoke(request, response)
       } catch (e: HttpException) {
         e.printStackTrace()
         response.setStatusCode(e.code)
