@@ -27,8 +27,12 @@ class Response(
     return toString().toByteArray()
   }
 
+  fun isSuccess(): Boolean {
+    return this.status.code < 400
+  }
+
   override fun toString(): String {
-    val statusLine = "HTTP/1.1 $status\r\n"
+    val statusLine = getStatusLine() + "\r\n"
     val headers = headers
       .toMap()
       .map { (key, value) -> "$key: $value" }
@@ -37,5 +41,13 @@ class Response(
     val body = if (body != null) "$body\r\n" else ""
 
     return "$statusLine$headers\r\n$body"
+  }
+
+  fun toStringSummary(): String {
+    return getStatusLine()
+  }
+
+  private fun getStatusLine(): String {
+    return "HTTP/1.1 $status"
   }
 }

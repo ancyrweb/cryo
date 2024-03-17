@@ -1,13 +1,16 @@
 package fr.cryo.http
 
 import fr.cryo.http.routing.Router
+import fr.cryo.logging.ConsoleLogger
+import fr.cryo.logging.Logger
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class HttpServer(
-  port: Int
+  port: Int,
+  private var logger: Logger = ConsoleLogger()
 ) {
   private var isRunning = true
   private val serverSocket = ServerSocket(port)
@@ -24,10 +27,12 @@ class HttpServer(
       Runtime.getRuntime().availableProcessors()
     )
 
+    logger.info("Cryo Server is starting")
+
     while (isRunning) {
       try {
         val socket = serverSocket.accept()
-        threadPool.submit(RequestTask(socket, router!!))
+        threadPool.submit(RequestTask(socket, router!!, logger))
       } catch (e: Exception) {
         e.printStackTrace()
       }
@@ -46,7 +51,8 @@ class HttpServer(
 
   class RequestTask(
     private val socket: Socket,
-    private val router: Router
+    private val router: Router,
+    private val logger: Logger
   ) : Runnable {
     override fun run() {
       val inputStream = socket.getInputStream()
@@ -56,21 +62,34 @@ class HttpServer(
       if (inputStream.available() == 0) {
         response.setStatusCode(StatusCode.BAD_REQUEST)
         response.setPlainTextBody("Bad request")
-      } else {
-        val request = Request(socket.getInputStream())
-        try {
-          router.invoke(request, response)
-        } catch (e: HttpException) {
-          e.printStackTrace()
-          response.setStatusCode(e.code)
-          response.setPlainTextBody(e.message ?: "An unknown error occured")
-        } catch (e: Exception) {
-          e.printStackTrace()
-          response.setStatusCode(StatusCode.INTERNAL_SERVER_ERROR)
-          response.setPlainTextBody(e.message ?: "An unknown error occured")
-        }
+        end(response)
       }
 
+      val request = Request(socket.getInputStream())
+      logger.info(request.toStringSummary())
+      
+      try {
+        router.invoke(request, response)
+      } catch (e: HttpException) {
+        e.printStackTrace()
+        response.setStatusCode(e.code)
+        response.setPlainTextBody(e.message ?: "An unknown error occured")
+      } catch (e: Exception) {
+        e.printStackTrace()
+        response.setStatusCode(StatusCode.INTERNAL_SERVER_ERROR)
+        response.setPlainTextBody(e.message ?: "An unknown error occured")
+      }
+
+      if (response.isSuccess()) {
+        logger.success(response.toStringSummary())
+      } else {
+        logger.error(response.toStringSummary())
+      }
+
+      end(response)
+    }
+
+    private fun end(response: Response) {
       socket
         .getOutputStream()
         .write(response.toByteArray())
