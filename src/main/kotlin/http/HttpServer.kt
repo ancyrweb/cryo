@@ -10,12 +10,13 @@ import java.util.concurrent.Executors
 
 class HttpServer(
   port: Int,
-  private var logger: Logger = ConsoleLogger()
+  private val logger: Logger = ConsoleLogger()
 ) {
   private var isRunning = true
   private val serverSocket = ServerSocket(port)
   private lateinit var threadPool: ExecutorService
   private var router: Router? = null
+
 
   /**
    * Runs the Cryo server
@@ -46,6 +47,7 @@ class HttpServer(
     this.router = router
   }
 
+
   /**
    * Shuts the server down
    * Respond to the last queued requests and then clean the thread pool.
@@ -72,7 +74,7 @@ class HttpServer(
 
       if (inputStream.available() == 0) {
         response.setStatusCode(StatusCode.BAD_REQUEST)
-        response.setPlainTextBody("Bad request")
+        response.respondText("Bad request")
         end(response)
       }
 
@@ -82,13 +84,13 @@ class HttpServer(
       try {
         router!!.invoke(request, response)
       } catch (e: HttpException) {
-        e.printStackTrace()
+        logger.error(e.stackTraceToString())
         response.setStatusCode(e.code)
-        response.setPlainTextBody(e.message ?: "An unknown error occured")
+        response.respondText(e.message ?: "An unknown error occured")
       } catch (e: Exception) {
-        e.printStackTrace()
+        logger.error(e.stackTraceToString())
         response.setStatusCode(StatusCode.INTERNAL_SERVER_ERROR)
-        response.setPlainTextBody(e.message ?: "An unknown error occured")
+        response.respondText(e.message ?: "An unknown error occured")
       }
 
       if (response.isSuccess()) {

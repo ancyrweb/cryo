@@ -50,4 +50,8 @@ class JsonArray(private val list: List<Any>) : JsonElement() {
     val value = list[index]
     return value is JsonNull
   }
+
+  fun forEach(handler: (value: Any) -> Unit) {
+    list.forEach(handler)
+  }
 }

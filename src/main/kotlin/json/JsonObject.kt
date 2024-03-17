@@ -59,4 +59,8 @@ class JsonObject(private val map: Map<String, Any>) : JsonElement() {
     val value = map[key]
     return value is JsonNull
   }
+
+  fun forEach(handler: (key: String, value: Any) -> Unit) {
+    map.forEach(handler)
+  }
 }
