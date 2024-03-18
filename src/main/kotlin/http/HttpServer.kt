@@ -78,7 +78,7 @@ class HttpServer(
         end(response)
       }
 
-      val request = Request(socket.getInputStream())
+      val request = Request.Builder(socket.getInputStream()).build()
       logger.info(request.toStringSummary())
 
       try {
