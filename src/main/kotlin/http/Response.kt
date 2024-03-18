@@ -1,5 +1,7 @@
 package fr.cryo.http
 
+import fr.cryo.json.JsonArray
+import fr.cryo.json.JsonObject
 import fr.cryo.json.JsonRoot
 import fr.cryo.json.JsonSerializer
 
@@ -26,6 +28,9 @@ class Response(
     this.body = JsonSerializer().serialize(root)
     this.headers.set("Content-Type", "application/json")
   }
+
+  fun respondJson(value: JsonObject) = respondJson(JsonRoot(value))
+  fun respondJson(value: JsonArray) = respondJson(JsonRoot(value))
 
   fun setStatusCode(status: StatusCode) {
     this.status = status

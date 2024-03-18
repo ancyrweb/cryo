@@ -31,4 +31,16 @@ class Headers(
   fun toMap(): Map<String, String> {
     return headers.toMap()
   }
+
+  override fun toString(): String {
+    val builder = StringBuilder()
+    builder.append("Headers(\n");
+    headers.entries.forEach { entry ->
+      builder.append("\t" + entry.key + " : " + entry.value + "\n")
+    }
+
+    builder.append(")")
+
+    return builder.toString()
+  }
 }

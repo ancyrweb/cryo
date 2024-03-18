@@ -48,7 +48,7 @@ class DefaultRouter : Router {
     private val handler: (Request, Response) -> Unit
   ) {
     fun match(request: Request): Boolean {
-      return path == request.uri
+      return path == request.url.path
     }
 
     fun invoke(request: Request, response: Response): Unit {

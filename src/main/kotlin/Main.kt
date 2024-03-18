@@ -3,6 +3,7 @@ package fr.cryo
 import fr.cryo.http.HttpMethod
 import fr.cryo.http.HttpServer
 import fr.cryo.http.routing.DefaultRouter
+import fr.cryo.json.JsonObject
 import fr.cryo.json.JsonParser
 
 fun main() {
@@ -10,9 +11,9 @@ fun main() {
   val router = DefaultRouter()
 
   router.bind("/", HttpMethod.GET) { request, response ->
-    response.respondJson(
-      JsonParser("""{"version":1}""").parse()
-    )
+    val obj = JsonObject()
+    request.url.queryParams.forEach { (t, u) -> obj.put(t, u) }
+    response.respondJson(obj)
   }
 
   router.bind("/", HttpMethod.POST) { request, response ->

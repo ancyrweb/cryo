@@ -67,6 +67,11 @@ class HttpServer(
     private val socket: Socket,
   ) : Runnable {
     override fun run() {
+      val details = ConnectionDetails(
+        port = socket.localPort,
+        hostname = socket.localAddress.hostName
+      )
+
       val inputStream = socket.getInputStream()
 
       val response = Response()
@@ -78,7 +83,11 @@ class HttpServer(
         end(response)
       }
 
-      val request = Request.Builder(socket.getInputStream()).build()
+      val request = Request.Builder(
+        socket.getInputStream(),
+        details
+      ).build()
+      
       logger.info(request.toStringSummary())
 
       try {

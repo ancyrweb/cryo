@@ -4,18 +4,21 @@ import java.io.InputStream
 
 class Request(
   val method: HttpMethod,
-  val uri: String,
+  val url: HttpUrl,
   val version: String,
   val headers: Headers,
   val body: String
 ) {
   fun toStringSummary(): String {
-    return "$method $uri"
+    return "$method " + url.path
   }
 
-  class Builder(private val input: InputStream) {
+  class Builder(
+    private val input: InputStream,
+    val details: ConnectionDetails
+  ) {
     private lateinit var method: HttpMethod
-    private var uri: String = ""
+    private lateinit var path: String
     private var version: String = ""
     private var headers = Headers()
     private var body: String = ""
@@ -31,7 +34,11 @@ class Request(
 
       return Request(
         method = method,
-        uri = uri,
+        url = HttpUrl(
+          rawPath = this.path,
+          hostname = details.hostname,
+          port = details.port,
+        ),
         version = version,
         headers = headers,
         body = body
@@ -43,7 +50,7 @@ class Request(
       val parts = line.split(" ")
 
       this.method = HttpMethod.fromString(parts[0].trim())
-      this.uri = parts[1].trim()
+      this.path = parts[1].trim()
       this.version = parts[2].trim()
     }
 

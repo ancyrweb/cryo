@@ -1,6 +1,7 @@
 package fr.cryo.json
 
-class JsonObject(private val map: Map<String, Any>) : JsonElement() {
+class JsonObject(private val map: MutableMap<String, Any> = HashMap()) :
+  JsonElement() {
   fun getString(key: String): String {
     val value = map[key]
     if (value is String) {
@@ -60,7 +61,13 @@ class JsonObject(private val map: Map<String, Any>) : JsonElement() {
     return value is JsonNull
   }
 
-  fun forEach(handler: (key: String, value: Any) -> Unit) {
-    map.forEach(handler)
-  }
+  fun forEach(handler: (key: String, value: Any) -> Unit) = map.forEach(handler)
+
+  fun put(key: String, value: String) = this.map.set(key, value)
+  fun put(key: String, value: Int) = this.map.set(key, value)
+  fun put(key: String, value: Double) = this.map.set(key, value)
+  fun put(key: String, value: Boolean) = this.map.set(key, value)
+  fun put(key: String, value: JsonObject) = this.map.set(key, value)
+  fun put(key: String, value: JsonArray) = this.map.set(key, value)
+  fun put(key: String) = this.map.set(key, JsonNull())
 }
